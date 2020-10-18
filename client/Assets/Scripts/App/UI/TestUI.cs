@@ -15,36 +15,41 @@ namespace RandB
         //---------------------------------------------
         void Start()
         {
-            // 文字数カウント
-            templeteText.gameObject.SetActive(true);
-            var count = templeteText.text.Length;
-            char[] textString = templeteText.text.ToCharArray();
-            UnityEngine.Debug.Log("----------------");
-            for (int i = 0; i < count; i++)
-            {
-                var text = Object.Instantiate(templeteText);
-                text.gameObject.transform.SetParent(this.transform);
-                text.gameObject.transform.localPosition = Vector3.zero;
-                text.text = textString[i].ToString();
-                stringList.Add(text);
-                UnityEngine.Debug.Log(text.text);
-            }
-            templeteText.gameObject.SetActive(false);
+            var charList = TextToChar.ConvertToChar(templeteText, "Test Function");
 
             // ゆるやかな拡大：
             // InOutCirc、InOutQuint
             // OutQuint、OutQuart
             // InOutCubic、OutCubic
             // OutQuad
-            float targetX = 500.0f;
-            float stringSize = 150.0f;
-            for (int i = 0; i < stringList.Count; i++)
+            float targetX = 0.0f;
+            float spacing = 0.0f;
+            float posX = targetX;
+            for (int i = 0; i < charList.Count; i++)
             {
-                var str = stringList[i];
+                var str = charList[i];
+                str.transform.localPosition = new Vector3(800.0f, 0.0f, 0.0f);
+
+                if (i == 0)
+                {
+                    posX += str.rectTransform.sizeDelta.x * 0.5f;
+                }
                 var sequence = DOTween.Sequence()
-                    .Append(str.transform.DOLocalMoveX(-targetX + (stringSize * i), 0.5f).SetDelay(i * 0.5f).SetEase(Ease.InOutCirc))
+                    .Append(str.transform.DOLocalMoveX(posX, 0.5f).SetDelay(i * 0.5f).SetEase(Ease.InOutCirc))
                     .Append(str.transform.DORotate(new Vector3(0.0f, 0.0f, 360.0f), 0.5f).SetRelative(true).SetEase(Ease.InOutCirc))
                     ;
+                sequence.Play();
+
+                var nextindex = i + 1;
+                TMP_Text nextStr = null;
+                if (nextindex != charList.Count)
+                {
+                    nextStr = charList[nextindex];
+                }
+
+                float strSizeX = str.rectTransform.sizeDelta.x * 0.5f;
+                float nextStrSizeX = (nextStr == null) ? 0.0f : nextStr.rectTransform.sizeDelta.x * 0.5f;
+                posX += (strSizeX + spacing + nextStrSizeX);
             }
 
             /*
@@ -103,12 +108,7 @@ namespace RandB
         // Field
         //---------------------------------------------
         [SerializeField]
-        private TMP_Text animationText = null;
-
-        [SerializeField]
         private TMP_Text templeteText = null;
-
-        List<TMP_Text> stringList = new List<TMP_Text>();
 
         //　Time.timeScaleに設定する値
         private float timeScale = 0.1f;
